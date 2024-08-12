@@ -1,0 +1,17 @@
+<template name="assistant_actions">
+    <div class="assistant-actions">
+
+        <div class="assistant-caller">
+        </div>
+
+        <div class="assistant-buttons">
+            {{#each it in itemsList }}
+                {{#if itemShown it }}
+                    <button class="btn btn-sm {{ itemClass it }}" title="{{ itemTitle it }}" {{ itemDisabled it }}>
+                        {{{ itemHtml it }}}
+                    </button>
+                {{/if}}
+            {{/each}}
+        </div>
+    </div>
+</template>

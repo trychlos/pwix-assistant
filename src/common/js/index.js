@@ -7,3 +7,4 @@ import './constants.js';
 import './configure.js';
 import './trace.js';
 //
+import './i18n.js';

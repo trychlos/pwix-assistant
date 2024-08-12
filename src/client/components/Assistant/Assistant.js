@@ -1,17 +1,26 @@
 /*
  * pwix:assistant/src/client/components/Assistant/Assistant.js
+ *
+ * Parms:
+ * - see README
  */
 
 import _ from 'lodash';
 
+import { Bootbox } from 'meteor/pwix:bootbox';
+import { Modal } from 'meteor/pwix:modal';
+import { pwixI18n } from 'meteor/pwix:i18n';
+import { ReactiveDict } from 'meteor/reactive-dict';
 import { ReactiveVar } from 'meteor/reactive-var';
 import { UIU } from 'meteor/pwix:ui-utils';
+
+import '../assistant_actions/assistant_actions.js';
 
 import './Assistant.html';
 
 Template.Assistant.onCreated( function(){
     const self = this;
-    self.APP = {
+    self.PCK = {
         // keept the track of the first activation
         firstActivated: false,
         // whether the assistant runs inside of a modal
@@ -29,7 +38,7 @@ Template.Assistant.onCreated( function(){
             next: '.js-next',
             prev: '.js-prev'
         },
-        // converter coreTabbedTemplate event to Assistant event
+        // converter Tabbed event to Assistant event
         tabbedTemplateEvents: {
             'tabbed-pane-to-hide': 'assistant-pane-to-hide',
             'tabbed-pane-to-show': 'assistant-pane-to-show',
@@ -48,10 +57,10 @@ Template.Assistant.onCreated( function(){
         //  but Assistant never ever enable/disable buttons
         //  at startup, Cancel is enabled, Prev and Next are Disabled - it is up to the application to change them
         actionsSetup( index ){
-            if( self.APP.$actions.get()?.length ){
-                const pages = self.APP.dcPages();
+            if( self.PCK.$actions.get()?.length ){
+                const pages = self.PCK.dcPages();
                 if( pages[index].done === true ){
-                    self.APP.$actions.get().trigger( 'set-done' );
+                    self.PCK.$actions.get().trigger( 'assistant-do-set-done' );
                 }
             }
         },
@@ -61,7 +70,7 @@ Template.Assistant.onCreated( function(){
             return Promise.resolve( true )
                 .then(() => {
                     // default is to let the assistant be closed
-                    if( self.APP.beforeCloseParms.get( 'confirmOnClose' ) !== true ){
+                    if( self.PCK.beforeCloseParms.get( 'confirmOnClose' ) !== true ){
                         return true;
                     }
                     return new Promise(( resolve ) => {
@@ -69,7 +78,7 @@ Template.Assistant.onCreated( function(){
                             title: pwixI18n.label( I18N, 'assistant.close_title' ),
                             message: pwixI18n.label( I18N, 'assistant.close_confirm' ),
                             btns_family: Bootbox.C.Family.YESNO,
-                            mdClassesContent: self.APP.beforeCloseParms.get( 'mdClassesContent' )
+                            mdClassesContent: self.PCK.beforeCloseParms.get( 'mdClassesContent' )
                         }, ( res ) => { resolve( res ); });
                     });
                 });
@@ -77,9 +86,9 @@ Template.Assistant.onCreated( function(){
 
         // reset the buttons
         buttonsReset(){
-            const $actions = self.APP.$actions.get();
+            const $actions = self.PCK.$actions.get();
             if( $actions && $actions.length ){
-                $actions.trigger( 'reset-actions' );
+                $actions.trigger( 'assistant-do-reset-actions' );
             }
         },
 
@@ -98,13 +107,13 @@ Template.Assistant.onCreated( function(){
 
         // enable/disable a pane
         enablePaneByName( name, enabled ){
-            if( self.APP.dcPages()[0].name === name ){
+            if( self.PCK.dcPages()[0].name === name ){
                 console.warn( 'cowardly refusing to disable first pane' );
             } else {
-                self.APP.enabledPanes.set( name, enabled );
-                self.$( '.ca-tabbed-template[data-tabbed-id="'+instance.APP.tabbedId.get()+'"]' ).trigger( 'tabbed-do-enable', {
-                    tabbedId: instance.APP.tabbedId.get(),
-                    index: instance.APP.indexByName( name ),
+                self.PCK.enabledPanes.set( name, enabled );
+                self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"]' ).trigger( 'tabbed-do-enable', {
+                    tabbedId: self.PCK.tabbedId.get(),
+                    index: self.PCK.indexByName( name ),
                     enabled: enabled
                 });
             }
@@ -112,7 +121,7 @@ Template.Assistant.onCreated( function(){
 
         // return the index of the page giving its name, or -1
         indexByName( name ){
-            const pages = self.APP.dcPages();
+            const pages = self.PCK.dcPages();
             let idx = -1;
             for( let i=0 ; i<pages.length ; ++i ){
                 if( pages[i].name === name ){
@@ -125,12 +134,12 @@ Template.Assistant.onCreated( function(){
 
         // compute the index of the next page
         nextIndex( page, tick ){
-            const pages = self.APP.dcPages();
+            const pages = self.PCK.dcPages();
             let nextIdx = page.index+tick;
             let found = false;
             do {
                 const name = pages[nextIdx].name;
-                const value = self.APP.enabledPanes.get( name );
+                const value = self.PCK.enabledPanes.get( name );
                 const status = _.isBoolean( value ) ? value : true;
                 //console.debug( 'nextIdx', nextIdx, 'name', name, 'value', value, 'status', status );
                 if( status ){
@@ -148,35 +157,35 @@ Template.Assistant.onCreated( function(){
 
         // a page has been activated in an underlying tab (make sure this is our own tabbed-template)
         pageActivated( data ){
-            if( data.tabbedName === self.APP.dcName()){
-                self.APP.activePane.set( data.tab.TABBED );
+            if( data.tabbedName === self.PCK.dcName()){
+                self.PCK.activePane.set( data.tab.TABBED );
             }
         },
 
         // go to next page
         pageNext(){
-            self.APP.pageOnChange( +1 );
+            self.PCK.pageOnChange( +1 );
         },
 
         // go back to previous page
         pagePrev(){
-            self.APP.pageOnChange( -1 );
+            self.PCK.pageOnChange( -1 );
         },
 
         // change page - this is triggered by an assistant-action
         //  if the first computed page is not enabled, then go forward (resp. backward) until first not-disabled
         pageOnChange( tick ){
-            if( self.APP.firstActivated ){
-                const page = self.APP.activePane.get();
+            if( self.PCK.firstActivated ){
+                const page = self.PCK.activePane.get();
                 if( page ){
-                    const nextIndex = self.APP.nextIndex( page, tick );
+                    const nextIndex = self.PCK.nextIndex( page, tick );
                     const onChange = Template.currentData().onChange;
                     let accept = true;
                     if( onChange && _.isFunction( onChange )){
                         accept = onChange( page.index, nextIndex );
                     }
                     if( accept ){
-                        self.$( '.ca-tabbed-template[data-tabbed-id="'+self.APP.tabbedId.get()+'"]' ).trigger( 'tabbed-do-activate', { tabbedId: self.APP.tabbedId.get(), index: nextIndex });
+                        self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"]' ).trigger( 'tabbed-do-activate', { tabbedId: self.PCK.tabbedId.get(), index: nextIndex });
                     }
                 }
             }
@@ -185,20 +194,20 @@ Template.Assistant.onCreated( function(){
         // a page is on the transation from to-hide until shown
         //  a message is forwarded to the pane and the application is called (once per phase)
         pageOnTransition( event, data ){
-            const fwd_event = self.APP.tabbedTemplateEvents[event] || null;
-            //console.debug( 'pageOnTransition', event, data, self.APP.firstActivated, data.tabbedName, self.APP.dcName(), 'fwd_event', fwd_event, 'lastSent', self.APP.lastAssistantEventSent );
-            if( fwd_event && fwd_event !== self.APP.lastAssistantEventSent && self.APP.firstActivated && data.tabbedName === self.APP.dcName()){
+            const fwd_event = self.PCK.tabbedTemplateEvents[event] || null;
+            //console.debug( 'pageOnTransition', event, data, self.PCK.firstActivated, data.tabbedName, self.PCK.dcName(), 'fwd_event', fwd_event, 'lastSent', self.PCK.lastAssistantEventSent );
+            if( fwd_event && fwd_event !== self.PCK.lastAssistantEventSent && self.PCK.firstActivated && data.tabbedName === self.PCK.dcName()){
                 const fwd_data = {
-                    assistantName: self.APP.dcName(),
+                    assistantName: self.PCK.dcName(),
                     tabbedId: data.tabbedId,
                     paneId: data.tab.TABBED.paneid,
                     paneName: data.tab.TABBED.name,
                     paneIndex: data.tab.TABBED.index
                 };
                 // advertize the assistant pane
-                const $fwd_target = self.$( '.ca-tabbed-template[data-tabbed-id="'+self.APP.tabbedId.get()+'"] #'+data.tab.TABBED.paneid+' > :first-child' );
+                const $fwd_target = self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"] #'+data.tab.TABBED.paneid+' > :first-child' );
                 $fwd_target.trigger( fwd_event, fwd_data );
-                self.APP.lastAssistantEventSent = fwd_event;
+                self.PCK.lastAssistantEventSent = fwd_event;
             }
         }
     };
@@ -207,8 +216,8 @@ Template.Assistant.onCreated( function(){
     self.autorun(() => {
         const confirm = Template.currentData().confirmOnClose;
         const classes = Template.currentData().mdClassesContent || '';
-        self.APP.beforeCloseParms.set( 'confirmOnClose', _.isBoolean( confirm ) ? confirm : false );
-        self.APP.beforeCloseParms.set( 'mdClassesContent', classes );
+        self.PCK.beforeCloseParms.set( 'confirmOnClose', _.isBoolean( confirm ) ? confirm : false );
+        self.PCK.beforeCloseParms.set( 'mdClassesContent', classes );
     });
 
     // track data context
@@ -226,21 +235,21 @@ Template.Assistant.onRendered( function(){
     const self = this;
 
     // do we run inside of a modal ?
-    const $modal = self.$( '.ca-assistant-template' ).closest( '.modal-body' );
-    self.APP.insideModal.set( Boolean( $modal.length > 0 ));
+    const $modal = self.$( '.Assistant' ).closest( '.modal-body' );
+    self.PCK.insideModal.set( Boolean( $modal.length > 0 ));
 
     // set ourselves as the modal event target + setup our own actions
     //  if we do not run in a modal, the assistant_actions companion component is a sub-template of the panes
     self.autorun(() => {
-        if( self.APP.insideModal.get()){
+        if( self.PCK.insideModal.get()){
             Modal.set({
-                target: self.$( '.ca-assistant-template' ),
+                target: self.$( '.Assistant' ),
                 footer: 'assistant_actions',
                 closeByBackdrop: false,
                 // should authorize the close on Escape, but at the moment pwix:modal doesn't know how to intercept the Escape key (see #38)
                 closeByKeyboard: false,
                 beforeClose( modalId ){
-                    return self.APP.beforeClose();
+                    return self.PCK.beforeClose();
                 }
             })
         }
@@ -248,42 +257,42 @@ Template.Assistant.onRendered( function(){
 
     // track the current page object and setup actions on each change
     self.autorun(() => {
-        const page = self.APP.activePane.get();
+        const page = self.PCK.activePane.get();
         console.debug( 'activePane', page );
         if( page ){
-            self.APP.actionsSetup( page.index );
+            self.PCK.actionsSetup( page.index );
         }
     });
 
     // get the assistant_action sibling DOM element
     //  inside a modal, this is a child of modal-body - else a child of this assistant-template
     //  but CoreApp.DOM.waitFor() searches through the whole document
-    UIU.DOM.waitFor( '.ca-assistant-actions' ).then(( elt ) => {
-        self.APP.$actions.set( $( elt ));
+    UIU.DOM.waitFor( '.assistant-actions' ).then(( elt ) => {
+        self.PCK.$actions.set( $( elt ));
     });
 
     // and identify ourselves againts this companion component
     //  and run first activation
     self.autorun(() => {
-        const $actions = self.APP.$actions.get();
+        const $actions = self.PCK.$actions.get();
         if( $actions && $actions.length ){
-            $actions.trigger( 'assistant-template', { jq: self.$(' .ca-assistant-template' )});
+            $actions.trigger( 'assistant-template', { jq: self.$(' .Assistant' )});
 
             // first activation
             //  only start (activate the assistant) when all pages have been loaded
             //  unfortunately, Bootstrap triggers events on each tab load, and do not retrigger any event when we ask to activate the current tab
             //  so we ask for the last page, set activation to true (because event handlers are sync), and then only activate the first page
-            if( !self.APP.firstActivated ){
-                const pages = self.APP.dcPages();
-                self.$( '.ca-tabbed-template[data-tabbed-id="'+self.APP.tabbedId.get()+'"]' ).trigger( 'tabbed-do-activate', { tabbedId: self.APP.tabbedId.get(), index: pages.length-1 });
+            if( !self.PCK.firstActivated ){
+                const pages = self.PCK.dcPages();
+                self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"]' ).trigger( 'tabbed-do-activate', { tabbedId: self.PCK.tabbedId.get(), index: pages.length-1 });
                 console.debug( 'activating' );
-                self.APP.firstActivated = true;
-                self.$( '.ca-tabbed-template[data-tabbed-id="'+self.APP.tabbedId.get()+'"]' ).trigger( 'assistant-activated', { name: self.APP.dcName()});
-                self.$( '.ca-tabbed-template[data-tabbed-id="'+self.APP.tabbedId.get()+'"]' ).trigger( 'tabbed-do-activate', { tabbedId: self.APP.tabbedId.get(), index: 0 });
+                self.PCK.firstActivated = true;
+                self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"]' ).trigger( 'assistant-activated', { name: self.PCK.dcName()});
+                self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"]' ).trigger( 'tabbed-do-activate', { tabbedId: self.PCK.tabbedId.get(), index: 0 });
                 // disable the pages at startup
                 for( let i=0 ; i<pages.length ; ++i ){
                     if( pages[i].enabled === false ){
-                        self.APP.enablePaneByName( pages[i].name, false );
+                        self.PCK.enablePaneByName( pages[i].name, false );
                     }
                 }
             }
@@ -295,12 +304,12 @@ Template.Assistant.helpers({
     // parms to be provided for tabbed template
     parmsTabbed(){
         const dataContext = this;
-        const APP = Template.instance().APP;
+        const APP = Template.instance().PCK;
         const subTemplate = APP.insideModal.get() ? null : 'assistant-actions'
         return {
             ...dataContext,
             name(){
-                return APP.dcName( dataContext ) || 'ca-assistant-template';
+                return APP.dcName( dataContext ) || 'Assistant';
             },
             navLinkClasses: 'ca-inactive',
             navClasses: 'ca-assistant',
@@ -327,72 +336,72 @@ Template.Assistant.events({
     // all messages are blocked until first activation
     // identifies the coreTabbedTemplate when first rendered
     //  doesn't bubble up while the assistant is not activated
-    'tabbed-rendered .ca-assistant-template'( event, instance, data ){
-        instance.APP.tabbedId.set( data.tabbedId );
-        return instance.APP.firstActivated;
+    'tabbed-rendered .Assistant'( event, instance, data ){
+        instance.PCK.tabbedId.set( data.tabbedId );
+        return instance.PCK.firstActivated;
     },
 
     // transitional events the application panes have already received this event when it arrives here
     // a page is about to be left
-    'tabbed-pane-to-hide .ca-assistant-template'( event, instance, data ){
-        instance.APP.pageOnTransition( event.type, data );
-        return instance.APP.firstActivated;
+    'tabbed-pane-to-hide .Assistant'( event, instance, data ){
+        instance.PCK.pageOnTransition( event.type, data );
+        return instance.PCK.firstActivated;
     },
     // a page is about to be shown
     //  set the active page (anticipated way) to also setup actions
-    'tabbed-pane-to-show .ca-assistant-template'( event, instance, data ){
-        instance.APP.pageActivated( data );
-        instance.APP.buttonsReset();
-        instance.APP.pageOnTransition( event.type, data );
-        return instance.APP.firstActivated;
+    'tabbed-pane-to-show .Assistant'( event, instance, data ){
+        instance.PCK.pageActivated( data );
+        instance.PCK.buttonsReset();
+        instance.PCK.pageOnTransition( event.type, data );
+        return instance.PCK.firstActivated;
     },
     // a page is hidden
     //  we setup the actions here (as soon as possible) so that the application has two chances to override it with its own desiderata
-    'tabbed-pane-hidden .ca-assistant-template'( event, instance, data ){
-        instance.APP.pageOnTransition( event.type, data );
-        return instance.APP.firstActivated;
+    'tabbed-pane-hidden .Assistant'( event, instance, data ){
+        instance.PCK.pageOnTransition( event.type, data );
+        return instance.PCK.firstActivated;
     },
     // a page has been activated
-    'tabbed-pane-shown .ca-assistant-template'( event, instance, data ){
-        instance.APP.pageOnTransition( event.type, data );
-        return instance.APP.firstActivated;
+    'tabbed-pane-shown .Assistant'( event, instance, data ){
+        instance.PCK.pageOnTransition( event.type, data );
+        return instance.PCK.firstActivated;
     },
 
     // handle assistant-actions actions
-    'action-cancel .ca-assistant-template'( event, instance ){
+    'assistant-action-cancel .Assistant'( event, instance ){
         Modal.askClose();
         return false;
     },
-    'action-close .ca-assistant-template'( event, instance ){
-        instance.APP.buttonsReset();
+    'assistant-action-close .Assistant'( event, instance ){
+        instance.PCK.buttonsReset();
         Modal.close();
     },
-    'action-next .ca-assistant-template'( event, instance ){
-        instance.APP.pageNext();
+    'assistant-action-next .Assistant'( event, instance ){
+        instance.PCK.pageNext();
     },
-    'action-prev .ca-assistant-template'( event, instance ){
-        instance.APP.pagePrev();
+    'assistant-action-prev .Assistant'( event, instance ){
+        instance.PCK.pagePrev();
     },
 
     // handle instructions from the parent
-    'do-enable-action .ca-assistant-template'( event, instance, data ){
-        const selector = instance.APP.actions[data.action] || null;
-        const $actions = instance.APP.$actions.get();
+    'assistant-do-enable-action .Assistant'( event, instance, data ){
+        const selector = instance.PCK.actions[data.action] || null;
+        const $actions = instance.PCK.$actions.get();
         if( selector && $actions && $actions.length ){
             $actions.trigger( 'enable-action', { selector: selector, enabled: data.enabled });
         }
         return false;
     },
-    'do-label-action .ca-assistant-template'( event, instance, data ){
-        const selector = instance.APP.actions[data.action] || null;
-        const $actions = instance.APP.$actions.get();
+    'assistant-do-label-action .Assistant'( event, instance, data ){
+        const selector = instance.PCK.actions[data.action] || null;
+        const $actions = instance.PCK.$actions.get();
         if( selector && $actions && $actions.length ){
             $actions.trigger( 'label-action', { selector: selector, html: data.html, title: data.title });
         }
         return false;
     },
-    'do-enable-tab .ca-assistant-template'( event, instance, data ){
-        instance.APP.enablePaneByName( data.name, data.enabled );
+    'assistant-do-enable-tab .Assistant'( event, instance, data ){
+        instance.PCK.enablePaneByName( data.name, data.enabled );
         return false;
     }
 });

@@ -44,7 +44,7 @@ A component which encapsulates a `pwix:tabbed` modal dialog which acts as an ass
 
 It accepts following data context:
 
-- `name`: when set, a name to be given to the assistant, defaulting to 'Assistant'
+- `name`: mandatory, a name to be given to the assistant, defaulting to 'Assistant'
 
 - `pages`: an (ordered) array of page descriptions, or a function which returns such an array, where each item is a page definition with:
 
@@ -65,13 +65,17 @@ It accepts following data context:
 
 ##### Handled events
 
-- `do-enable-action` { action, enabled }
+- `assistant-do-show-action` { action, shown }
+     with action=prev, next, cancel or close
+     and shown=true|false
+
+- `assistant-do-enable-action` { action, enabled }
      with action=prev, next, cancel or close
      and enabled=true|false
 
-- `do-label-action` { action, html, title }
+- `assistant-do-label-action` { action, html, title }
 
-- `do-enable-tab` { name, enabled }
+- `assistant-do-enable-tab` { name, enabled }
      assistant_template refuses to disable the pane at index 0 (must have one displayable pane)
 
 ##### Triggered events
