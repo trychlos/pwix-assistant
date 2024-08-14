@@ -30,15 +30,14 @@
 
 
 .Assistant {
-    //height: 100%;
-    .ca-navs-encloser {
-        margin-right: 1em;
-        border-right: 1px solid gray;
-    }
-    .ca-tabbed-navs {
+    .tabbed-navs {
+        min-width: 10em;
         ul,
         ul li {
             border: none;
+            button {
+                text-align: inherit;
+            }
         }
         :focus-visible {
             outline: none;
@@ -65,6 +64,7 @@
         }
         .nav-link.disabled {
             font-style: italic;
+            color: gray;
         }
     }
 }
