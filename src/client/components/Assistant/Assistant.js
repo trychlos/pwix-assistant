@@ -8,6 +8,7 @@
 import _ from 'lodash';
 
 import { Bootbox } from 'meteor/pwix:bootbox';
+import { Forms } from 'meteor/pwix:forms';
 import { Modal } from 'meteor/pwix:modal';
 import { pwixI18n } from 'meteor/pwix:i18n';
 import { ReactiveDict } from 'meteor/reactive-dict';
@@ -52,6 +53,10 @@ Template.Assistant.onCreated( function(){
         // happens that the data context is different in beforeClose() function depending of whether it is caller from the Cancel button (this assistant data context)
         //  or from the header xmark (mdModal data context) - so keep the interesting value here
         beforeCloseParms: new ReactiveDict(),
+        // a Forms.Checker for this assistant
+        checker: new ReactiveVar( null ),
+        // the global Message zone for this assistant
+        messager: null,
 
         // depending of the current page, may choose to display special buttons
         //  but Assistant never ever enable/disable buttons
@@ -82,14 +87,6 @@ Template.Assistant.onCreated( function(){
                         }, ( res ) => { resolve( res ); });
                     });
                 });
-        },
-
-        // reset the buttons
-        buttonsReset(){
-            const $actions = self.PCK.$actions.get();
-            if( $actions && $actions.length ){
-                $actions.trigger( 'assistant-do-reset-actions' );
-            }
         },
 
         // returns the assistant name from the data context
@@ -155,6 +152,10 @@ Template.Assistant.onCreated( function(){
             return nextIdx;
         },
 
+        // reset the buttons before a pane be shown
+        onToShow(){
+        },
+
         // a page has been activated in an underlying tab (make sure this is our own tabbed-template)
         pageActivated( data ){
             if( data.tabbedName === self.PCK.dcName()){
@@ -175,8 +176,10 @@ Template.Assistant.onCreated( function(){
         // change page - this is triggered by an assistant-action
         //  if the first computed page is not enabled, then go forward (resp. backward) until first not-disabled
         pageOnChange( tick ){
+            //console.debug( 'firstActivated', self.PCK.firstActivated );
             if( self.PCK.firstActivated ){
                 const page = self.PCK.activePane.get();
+                //console.debug( 'page', page );
                 if( page ){
                     const nextIndex = self.PCK.nextIndex( page, tick );
                     const onChange = Template.currentData().onChange;
@@ -184,6 +187,7 @@ Template.Assistant.onCreated( function(){
                     if( onChange && _.isFunction( onChange )){
                         accept = onChange( page.index, nextIndex );
                     }
+                    //console.debug( 'nextIndex', nextIndex, 'accept', accept );
                     if( accept ){
                         self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"]' ).trigger( 'tabbed-do-activate', { tabbedId: self.PCK.tabbedId.get(), index: nextIndex });
                     }
@@ -209,6 +213,12 @@ Template.Assistant.onCreated( function(){
                 $fwd_target.trigger( fwd_event, fwd_data );
                 self.PCK.lastAssistantEventSent = fwd_event;
             }
+        },
+
+        // when a tab is shown, then set the focus on the first input field
+        setFocusOnShown( event, data ){
+            const $target = self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"] #'+data.tab.TABBED.paneid+' > :first-child' );
+            $target.find( 'input' ).first().focus();
         }
     };
 
@@ -258,7 +268,6 @@ Template.Assistant.onRendered( function(){
     // track the current page object and setup actions on each change
     self.autorun(() => {
         const page = self.PCK.activePane.get();
-        console.debug( 'activePane', page );
         if( page ){
             self.PCK.actionsSetup( page.index );
         }
@@ -266,7 +275,7 @@ Template.Assistant.onRendered( function(){
 
     // get the assistant_action sibling DOM element
     //  inside a modal, this is a child of modal-body - else a child of this assistant-template
-    //  but CoreApp.DOM.waitFor() searches through the whole document
+    //  but UIU.DOM.waitFor() searches through the whole document
     UIU.DOM.waitFor( '.assistant-actions' ).then(( elt ) => {
         self.PCK.$actions.set( $( elt ));
     });
@@ -285,7 +294,7 @@ Template.Assistant.onRendered( function(){
             if( !self.PCK.firstActivated ){
                 const pages = self.PCK.dcPages();
                 self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"]' ).trigger( 'tabbed-do-activate', { tabbedId: self.PCK.tabbedId.get(), index: pages.length-1 });
-                console.debug( 'activating' );
+                //console.debug( 'activating' );
                 self.PCK.firstActivated = true;
                 self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"]' ).trigger( 'assistant-activated', { name: self.PCK.dcName()});
                 self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"]' ).trigger( 'tabbed-do-activate', { tabbedId: self.PCK.tabbedId.get(), index: 0 });
@@ -298,14 +307,37 @@ Template.Assistant.onRendered( function(){
             }
         }
     });
+
+    // if a parent checker is provided, then allocate a checker and a messagefr here
+    self.autorun(() => {
+        const parentChecker = Template.currentData().checker;
+        if( parentChecker && parentChecker instanceof ReactiveVar && parentChecker.get() instanceof Forms.Checker && !self.PCK.checker.get()){
+            self.PCK.messager = new Forms.Messager();
+            self.PCK.checker.set( new Forms.Checker( self, {
+                name: 'assistant',
+                parent: parentChecker.get(),
+                messager: self.PCK.messager
+            }));
+        }
+    });
 });
 
 Template.Assistant.helpers({
     // parms to be provided for tabbed template
+    // insert the checker if we have one
     parmsTabbed(){
-        const dataContext = this;
+        let dataContext = this;
         const APP = Template.instance().PCK;
-        const subTemplate = APP.insideModal.get() ? null : 'assistant-actions'
+        if( APP.checker.get() && APP.messager ){
+            dataContext = _.merge( dataContext, {
+                checker: APP.checker,
+                paneSubTemplate: 'FormsMessager',
+                paneSubData: {
+                    messager: APP.messager
+                }
+            });
+        }
+        //console.debug( 'dcPages', APP.dcPages());
         return {
             ...dataContext,
             name(){
@@ -314,7 +346,7 @@ Template.Assistant.helpers({
             navLinkClasses: 'ca-inactive',
             navClasses: 'ca-assistant',
             navPosition: 'left',
-            paneSubTemplate: subTemplate,
+            //paneSubTemplate: subTemplate,
             tabs(){
                 let tabs = [];
                 APP.dcPages().every(( page ) => {
@@ -351,7 +383,7 @@ Template.Assistant.events({
     //  set the active page (anticipated way) to also setup actions
     'tabbed-pane-to-show .Assistant'( event, instance, data ){
         instance.PCK.pageActivated( data );
-        instance.PCK.buttonsReset();
+        instance.PCK.onToShow();
         instance.PCK.pageOnTransition( event.type, data );
         return instance.PCK.firstActivated;
     },
@@ -364,6 +396,7 @@ Template.Assistant.events({
     // a page has been activated
     'tabbed-pane-shown .Assistant'( event, instance, data ){
         instance.PCK.pageOnTransition( event.type, data );
+        instance.PCK.setFocusOnShown( event.type, data );
         return instance.PCK.firstActivated;
     },
 
@@ -373,7 +406,7 @@ Template.Assistant.events({
         return false;
     },
     'assistant-action-close .Assistant'( event, instance ){
-        instance.PCK.buttonsReset();
+        //instance.PCK.buttonsReset();
         Modal.close();
     },
     'assistant-action-next .Assistant'( event, instance ){
@@ -384,20 +417,19 @@ Template.Assistant.events({
     },
 
     // handle instructions from the parent
-    'assistant-do-enable-action .Assistant'( event, instance, data ){
-        const selector = instance.PCK.actions[data.action] || null;
+    'assistant-do-action-set .Assistant'( event, instance, data ){
         const $actions = instance.PCK.$actions.get();
-        if( selector && $actions && $actions.length ){
-            $actions.trigger( 'enable-action', { selector: selector, enabled: data.enabled });
+        if( $actions && $actions.length ){
+            $actions.trigger( event.type, data );
         }
         return false;
     },
+    'assistant-do-enable-action .Assistant'( event, instance, data ){
+        console.warn( 'obsolete event', event.type );
+        return false;
+    },
     'assistant-do-label-action .Assistant'( event, instance, data ){
-        const selector = instance.PCK.actions[data.action] || null;
-        const $actions = instance.PCK.$actions.get();
-        if( selector && $actions && $actions.length ){
-            $actions.trigger( 'label-action', { selector: selector, html: data.html, title: data.title });
-        }
+        console.warn( 'obsolete event', event.type );
         return false;
     },
     'assistant-do-enable-tab .Assistant'( event, instance, data ){

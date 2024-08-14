@@ -2,10 +2,69 @@
  * pwix:assistant/src/client/stylesheets/assistant.less
  */
 
- .assistant-actions button {
-    --bs-btn-border-color: lightgray;
+.Assistant {
+    width: 100%;
 }
-.assistant-actions button:hover {
+
+.assistant-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.assistant-button {
+    display: flex;
+    align-items: center;
+}
+.assistant-buttons button {
+    --bs-btn-border-color: gray;
+}
+.assistant-buttons button:disabled {
+    --bs-btn-disabled-color: lightgray;
+    --bs-btn-disabled-border-color: lightgray;
+}
+.assistant-buttons button:hover {
     --bs-btn-hover-bg: gray;
     --bs-btn-hover-color: lightgray;
+}
+
+
+.Assistant {
+    //height: 100%;
+    .ca-navs-encloser {
+        margin-right: 1em;
+        border-right: 1px solid gray;
+    }
+    .ca-tabbed-navs {
+        ul,
+        ul li {
+            border: none;
+        }
+        :focus-visible {
+            outline: none;
+        }
+        .nav-link {
+            transition: none;
+        }
+        .nav-link.active {
+            font-weight: bold;
+            background-color: inherit;
+            border: none;
+        }
+        .nav-link.ca-inactive {
+            cursor: default;
+            pointer-events: none;
+        }
+        .nav-link:focus {
+            border: none;
+        }
+        .nav-link:hover {
+            cursor: auto;
+            border: none;
+            color: var( --bs-nav-link-color );
+        }
+        .nav-link.disabled {
+            font-style: italic;
+        }
+    }
 }

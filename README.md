@@ -4,7 +4,7 @@
 
 This package provides a Blaze `Assistant` component.
 
-An assistant is a modal dialog which is used to guide the user through a more-or-less complex process, walking from one step to another each time the user accepts a page.
+An assistant is a tabbed display unit which is used to guide the user through a more-or-less complex process, walking from one step to another each time the user accepts a page.
 
 On each page, the user can choose:
 - go to next page
@@ -58,25 +58,41 @@ It accepts following data context:
     - `enabled`: whether the page is enabled at startup, defaulting to true
 
 - `actions`: when set, an (ordered) array of action descriptions to be added on the bottom left of the assistant pages, with:
-    - html: the html content to be displayed
+    - `html`: the html content to be displayed
 
 - `onChange`( currentIndex, nextIndex ): should return true to accept the change, false to staty on the same page, defaulting to true
+
 - `confirmOnClose`, whether we want a user confirmation when closing the assistant on Cancel action or header xmark click, defaulting to false
+
+If a `checker` ReactiveVar is available in the provided data context, then the component will allocate a `Forms.Messager` on the bottom of the panes.
+
+`Assistant` component defaults to provide four actions `cancel`, `close`, `next` and `prev`. When the assistant is displayed in a modal, each of these actions can be materialized by a button in the bottom right of the display unit. Through events, each of the actions may be shown or hidden,  enabled or disabled, and their HTML attributes and content can be changed.
 
 ##### Handled events
 
-- `assistant-do-show-action` { action, shown }
-     with action=prev, next, cancel or close
-     and shown=true|false
+- `assistant-do-action-set` { action, show|enable|html|title }
+    - with `action` = prev, next, cancel or close
+    - `show`: whether to show or not the action button
+    - `enable`: whether to enable or not the action button
+    - `html`: the HTML content of the action button
+    - `title`: the title associated with the action button
 
-- `assistant-do-enable-action` { action, enabled }
-     with action=prev, next, cancel or close
-     and enabled=true|false
+<!--
+- `assistant-do-action-show` { action, shown }
+    - with action=prev, next, cancel or close
+    - and shown=true|false
 
-- `assistant-do-label-action` { action, html, title }
+- `assistant-do-action-enable` { action, enabled }
+    - with action=prev, next, cancel or close
+    - and enabled=true|false
 
-- `assistant-do-enable-tab` { name, enabled }
-     assistant_template refuses to disable the pane at index 0 (must have one displayable pane)
+- `assistant-do-action-prop` { action, propname, propvalue }
+    - with action=prev, next, cancel or close
+    -->
+
+- `assistant-do-enable-tab` { name, index, enabled }
+
+    Please note that `Assistant` component cowardly refuses to disable the pane at index 0, as it wants have at least one displayable pane.
 
 ##### Triggered events
 

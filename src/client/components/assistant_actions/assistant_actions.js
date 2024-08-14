@@ -51,10 +51,10 @@ Template.assistant_actions.onCreated( function(){
                 title: pwixI18n.label( I18N, 'assistant.next_title' )
             },
             prev: {
-                enabled: true,
+                enabled: false,
                 html: '<div class="assistant-button"><span class="fa-solid fa-fw fa-angle-left"></span>'+pwixI18n.label( I18N, 'assistant.prev_btn' )+'</div>',
                 js: 'js-prev',
-                shown: false,
+                shown: true,
                 title: pwixI18n.label( I18N, 'assistant.prev_title' )
             }
         },
@@ -95,6 +95,11 @@ Template.assistant_actions.onCreated( function(){
                 self.PCK.buttonStates.set( key, def[prop] );
             });
         });
+    });
+
+    // track the button states
+    self.autorun(() => {
+        //console.debug( 'buttonStates', self.PCK.buttonStates.all());
     });
 });
 
@@ -163,21 +168,55 @@ Template.assistant_actions.events({
     },
 
     // instructions sent by Assistant
+    'assistant-do-action-set .assistant-actions'( event, instance, data ){
+        //instance.PCK.actions.set( data.action, data.enabled );
+        if( instance.PCK.buttonsList.get().includes( data.action )){
+            Object.keys( data ).forEach(( it ) => {
+                if( it !== 'action' ){
+                    const value = data[it];
+                    switch( it ){
+                        case 'enable':
+                            if( value === true || value === false ){
+                                instance.PCK.buttonStates.set( data.action + instance.PCK.sep + 'enabled', value );
+                            } else {
+                                console.warn( 'expected true|false value, got', value );
+                            }
+                            break;
+                        case 'html':
+                            instance.PCK.buttonStates.set( data.action + instance.PCK.sep + it, value );
+                            break;
+                        case 'show':
+                            if( value === true || value === false ){
+                                instance.PCK.buttonStates.set( data.action + instance.PCK.sep + 'shown', value );
+                            } else {
+                                console.warn( 'expected true|false value, got', value );
+                            }
+                            break;
+                        case 'title':
+                            instance.PCK.buttonStates.set( data.action + instance.PCK.sep + it, value );
+                            break;
+                    }
+                }
+            });
+        } else {
+            console.warn( 'unknown action', data.action );
+        }
+        return false;
+    },
     'assistant-do-enable-action .assistant-actions'( event, instance, data ){
-        instance.PCK.actions.set( data.action, data.enabled );
+        console.warn( 'obsolete event', event.type );
         return false;
     },
     'assistant-do-label-action .assistant-actions'( event, instance, data ){
-        console.debug( event.type, data, instance.$( '.assistant-actions '+data.selector ));
-        instance.$( '.assistant-actions '+data.selector ).html( data.html );
-        instance.$( '.assistant-actions '+data.selector ).attr( 'title', data.title );
+        console.warn( 'obsolete event', event.type );
         return false;
     },
     'assistant-do-show-action .assistant-actions'( event, instance, data ){
-        instance.PCK.actions.set( data.action, data.shown );
+        console.warn( 'obsolete event', event.type );
         return false;
     },
     'assistant-do-reset-actions .assistant-actions'( event, instance ){
+        console.warn( 'do not know how to handle that', event.type );
         //instance.$( '.assistant-actions .js-cancel' ).removeClass( 'ui-dnone' ).addClass( 'ui-dblock' );
         //instance.$( '.assistant-actions .js-prev' ).removeClass( 'ui-dnone' ).addClass( 'ui-dblock' );
         //instance.$( '.assistant-actions .js-next' ).removeClass( 'ui-dnone' ).addClass( 'ui-dblock' );
@@ -185,6 +224,7 @@ Template.assistant_actions.events({
         return false;
     },
     'assistant-do-set-done .assistant-actions'( event, instance, data ){
+        console.warn( 'do not know how to handle that', event.type );
         //instance.$( '.assistant-actions .js-cancel' ).addClass( 'ui-dnone' );
         //instance.$( '.assistant-actions .js-prev' ).addClass( 'ui-dnone' );
         //instance.$( '.assistant-actions .js-next' ).addClass( 'ui-dnone' );
