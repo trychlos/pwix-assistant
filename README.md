@@ -90,7 +90,7 @@ If a `checker` ReactiveVar is available in the provided data context, then the c
     - with action=prev, next, cancel or close
     -->
 
-- `assistant-do-enable-tab` { name, index, enabled }
+- `assistant-do-enable-tab` { name, enabled }
 
     Please note that `Assistant` component cowardly refuses to disable the pane at index 0, as it wants have at least one displayable pane.
 
@@ -98,6 +98,10 @@ If a `checker` ReactiveVar is available in the provided data context, then the c
 
 - on itself (and bubble up to the parents)
     - `assistant-activated` data={ name } at initialization time
+    - `assistant-axtion-cancel` on click
+    - `assistant-axtion-close` on click
+    - `assistant-axtion-next` on click
+    - `assistant-axtion-prev` on click
 
 - on every .tab-pane first child (the application-provided panes)
     - `assistant-pane-to-hide`, data={ assistantName, tabbedId, paneId, paneIndex, paneName } when about to leave the tab
