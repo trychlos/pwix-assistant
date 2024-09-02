@@ -98,10 +98,10 @@ If a `checker` ReactiveVar is available in the provided data context, then the c
 
 - on itself (and bubble up to the parents)
     - `assistant-activated` data={ name } at initialization time
-    - `assistant-axtion-cancel` on click
-    - `assistant-axtion-close` on click
-    - `assistant-axtion-next` on click
-    - `assistant-axtion-prev` on click
+    - `assistant-action-cancel` on click
+    - `assistant-action-close` on click
+    - `assistant-action-next` on click
+    - `assistant-action-prev` on click
 
 - on every .tab-pane first child (the application-provided panes)
     - `assistant-pane-to-hide`, data={ assistantName, tabbedId, paneId, paneIndex, paneName } when about to leave the tab

@@ -256,8 +256,8 @@ Template.Assistant.onRendered( function(){
                 target: self.$( '.Assistant' ),
                 footer: 'assistant_actions',
                 closeByBackdrop: false,
-                // should authorize the close on Escape, but at the moment pwix:modal doesn't know how to intercept the Escape key (see #38)
-                closeByKeyboard: false,
+                // authorize the close on Escape though at the moment pwix:modal doesn't know how to intercept the Escape key (see #38)
+                closeByKeyboard: true,
                 beforeClose( modalId ){
                     return self.PCK.beforeClose();
                 }
