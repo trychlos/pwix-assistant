@@ -282,9 +282,11 @@ Template.Assistant.onRendered( function(){
 
     // and identify ourselves againts this companion component
     //  and run first activation
+    //  only advertize of the assistant activation when initialization is done (and checker instanciated)
     self.autorun(() => {
         const $actions = self.PCK.$actions.get();
-        if( $actions && $actions.length ){
+        const checker = self.PCK.checker.get();
+        if( $actions && $actions.length && checker ){
             $actions.trigger( 'assistant-template', { jq: self.$(' .Assistant' )});
 
             // first activation
@@ -318,6 +320,7 @@ Template.Assistant.onRendered( function(){
                 parent: parentChecker.get(),
                 messager: self.PCK.messager
             }));
+            self.$( '.Assistant' ).trigger( 'assistant-checker', { checker: self.PCK.checker });
         }
     });
 });

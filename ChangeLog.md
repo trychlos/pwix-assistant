@@ -2,11 +2,12 @@
 
 ## ChangeLog
 
-### 1.0.1-rc
+### 1.1.0-rc
 
     Release date: 
 
     - Improve README
+    - Define new 'assistant-checker' event, thus bumping minor candidate version number
 
 ### 1.0.0
 

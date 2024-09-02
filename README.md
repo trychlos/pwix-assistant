@@ -77,19 +77,6 @@ If a `checker` ReactiveVar is available in the provided data context, then the c
     - `html`: the HTML content of the action button
     - `title`: the title associated with the action button
 
-<!--
-- `assistant-do-action-show` { action, shown }
-    - with action=prev, next, cancel or close
-    - and shown=true|false
-
-- `assistant-do-action-enable` { action, enabled }
-    - with action=prev, next, cancel or close
-    - and enabled=true|false
-
-- `assistant-do-action-prop` { action, propname, propvalue }
-    - with action=prev, next, cancel or close
-    -->
-
 - `assistant-do-enable-tab` { name, enabled }
 
     Please note that `Assistant` component cowardly refuses to disable the pane at index 0, as it wants have at least one displayable pane.
@@ -97,7 +84,8 @@ If a `checker` ReactiveVar is available in the provided data context, then the c
 ##### Triggered events
 
 - on itself (and bubble up to the parents)
-    - `assistant-activated` data={ name } at initialization time
+    - `assistant-checker` data={ checker } at instanciation time, checker being the ReactiveVar which holds the assistant checker
+    - `assistant-activated` data={ name } at initialization time, name being the assistant name
     - `assistant-action-cancel` on click
     - `assistant-action-close` on click
     - `assistant-action-next` on click
