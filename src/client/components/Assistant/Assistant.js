@@ -48,7 +48,7 @@ Template.Assistant.onCreated( function(){
         },
         // last Assistant event sent
         lastAssistantEventSent: null,
-        // track the enabed/disabled panes addressed by their name
+        // track the enabled/disabled panes addressed by their name
         enabledPanes: new ReactiveDict(),
         // happens that the data context is different in beforeClose() function depending of whether it is caller from the Cancel button (this assistant data context)
         //  or from the header xmark (mdModal data context) - so keep the interesting value here
@@ -298,7 +298,7 @@ Template.Assistant.onRendered( function(){
                 self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"]' ).trigger( 'tabbed-do-activate', { tabbedId: self.PCK.tabbedId.get(), index: pages.length-1 });
                 //console.debug( 'activating' );
                 self.PCK.firstActivated = true;
-                self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"]' ).trigger( 'assistant-activated', { name: self.PCK.dcName()});
+                self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"]' ).trigger( 'assistant-activated', { name: self.PCK.dcName(), pck: self.PCK });
                 self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"]' ).trigger( 'tabbed-do-activate', { tabbedId: self.PCK.tabbedId.get(), index: 0 });
                 // disable the pages at startup
                 for( let i=0 ; i<pages.length ; ++i ){

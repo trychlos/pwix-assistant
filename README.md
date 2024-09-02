@@ -85,7 +85,7 @@ If a `checker` ReactiveVar is available in the provided data context, then the c
 
 - on itself (and bubble up to the parents)
     - `assistant-checker` data={ checker } at instanciation time, checker being the ReactiveVar which holds the assistant checker
-    - `assistant-activated` data={ name } at initialization time, name being the assistant name
+    - `assistant-activated` data={ name, pck } at initialization time, name being the assistant name
     - `assistant-action-cancel` on click
     - `assistant-action-close` on click
     - `assistant-action-next` on click
