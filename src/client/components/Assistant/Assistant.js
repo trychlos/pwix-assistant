@@ -64,8 +64,11 @@ Template.Assistant.onCreated( function(){
         actionsSetup( index ){
             if( self.PCK.$actions.get()?.length ){
                 const pages = self.PCK.dcPages();
-                if( pages[index].done === true ){
-                    self.PCK.$actions.get().trigger( 'assistant-do-set-done' );
+                if( pages[index].start === true ){
+                    self.PCK.$actions.get().trigger( 'assistant-do-set-starting' );
+                }
+                if( pages[index].end === true ){
+                    self.PCK.$actions.get().trigger( 'assistant-do-set-ending' );
                 }
             }
         },

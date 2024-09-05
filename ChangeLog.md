@@ -9,6 +9,7 @@
     - Improve README
     - Define new 'assistant-checker' event, thus bumping minor candidate version number
     - Provide the PCK object to the assistant-activated event
+    - Fix starting an ending buttons
 
 ### 1.0.0
 

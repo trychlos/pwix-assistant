@@ -215,20 +215,18 @@ Template.assistant_actions.events({
         console.warn( 'obsolete event', event.type );
         return false;
     },
-    'assistant-do-reset-actions .assistant-actions'( event, instance ){
-        console.warn( 'do not know how to handle that', event.type );
-        //instance.$( '.assistant-actions .js-cancel' ).removeClass( 'ui-dnone' ).addClass( 'ui-dblock' );
-        //instance.$( '.assistant-actions .js-prev' ).removeClass( 'ui-dnone' ).addClass( 'ui-dblock' );
-        //instance.$( '.assistant-actions .js-next' ).removeClass( 'ui-dnone' ).addClass( 'ui-dblock' );
-        //instance.$( '.assistant-actions .js-close' ).removeClass( 'ui-dblock' ).addClass( 'ui-dnone' );
+    'assistant-do-set-starting .assistant-actions'( event, instance ){
+        instance.$( '.assistant-actions' ).trigger( 'assistant-do-action-set', { action: 'cancel', show: true, enable: true });
+        instance.$( '.assistant-actions' ).trigger( 'assistant-do-action-set', { action: 'prev', show: true });
+        instance.$( '.assistant-actions' ).trigger( 'assistant-do-action-set', { action: 'next', show: true });
+        instance.$( '.assistant-actions' ).trigger( 'assistant-do-action-set', { action: 'close', show: false });
         return false;
     },
-    'assistant-do-set-done .assistant-actions'( event, instance, data ){
-        console.warn( 'do not know how to handle that', event.type );
-        //instance.$( '.assistant-actions .js-cancel' ).addClass( 'ui-dnone' );
-        //instance.$( '.assistant-actions .js-prev' ).addClass( 'ui-dnone' );
-        //instance.$( '.assistant-actions .js-next' ).addClass( 'ui-dnone' );
-        //instance.$( '.assistant-actions .js-close' ).removeClass( 'ui-dnone' ).addClass( 'ui-dblock' );
+    'assistant-do-set-ending .assistant-actions'( event, instance, data ){
+        instance.$( '.assistant-actions' ).trigger( 'assistant-do-action-set', { action: 'cancel', show: false });
+        instance.$( '.assistant-actions' ).trigger( 'assistant-do-action-set', { action: 'prev', show: false });
+        instance.$( '.assistant-actions' ).trigger( 'assistant-do-action-set', { action: 'next', show: false });
+        instance.$( '.assistant-actions' ).trigger( 'assistant-do-action-set', { action: 'close', show: true, enable: true });
         return false;
     }
 });
