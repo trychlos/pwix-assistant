@@ -52,7 +52,10 @@ It accepts following data context:
     - `template`: the template name to be displayed
     - `label`: the label to be displayed on the left pages index
     - `data`: the data context to be passed to each page, defaulting to the data context of this same assistant
-    - `done`: should be set to true on the last page
+    - `start`: should be set to true on the first page
+         when true, the 'prev' action is disabled
+         default to false
+    - `end`: should be set to true on the last page
          when true, the available actions will be replaced with a single 'Close' button to mark that the action is done
          default to false, where we have the Cancel-Prev-Next buttons
     - `enabled`: whether the page is enabled at startup, defaulting to true

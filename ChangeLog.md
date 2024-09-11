@@ -10,6 +10,7 @@
     - Define new 'assistant-checker' event, thus bumping minor candidate version number
     - Provide the PCK object to the assistant-activated event
     - Fix starting an ending buttons
+    - Upgrade pwix:tabbed to v 1.3.0
 
 ### 1.0.0
 

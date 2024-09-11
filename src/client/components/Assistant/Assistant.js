@@ -26,8 +26,9 @@ Template.Assistant.onCreated( function(){
         firstActivated: false,
         // whether the assistant runs inside of a modal
         insideModal: new ReactiveVar( false ),
-        // the tabbed component identifier
+        // the tabbed component identifier and the DOM element
         tabbedId: new ReactiveVar( null ),
+        tabbedDom: new ReactiveVar( null ),
         // maintain the current page name
         activePane: new ReactiveVar( null, _.isEqual ),
         // the assistant-actions DOM element
@@ -110,12 +111,15 @@ Template.Assistant.onCreated( function(){
             if( self.PCK.dcPages()[0].name === name ){
                 console.warn( 'cowardly refusing to disable first pane' );
             } else {
-                self.PCK.enabledPanes.set( name, enabled );
-                self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"]' ).trigger( 'tabbed-do-enable', {
-                    tabbedId: self.PCK.tabbedId.get(),
-                    index: self.PCK.indexByName( name ),
-                    enabled: enabled
-                });
+                const Tabbed = self.PCK.tabbedDom.get();
+                if( Tabbed ){
+                    self.PCK.enabledPanes.set( name, enabled );
+                    Tabbed.trigger( 'tabbed-do-enable', {
+                        tabbedId: self.PCK.tabbedId.get(),
+                        index: self.PCK.indexByName( name ),
+                        enabled: enabled
+                    });
+                }
             }
         },
 
@@ -159,7 +163,7 @@ Template.Assistant.onCreated( function(){
         onToShow(){
         },
 
-        // a page has been activated in an underlying tab (make sure this is our own tabbed-template)
+        // a page has been activated in an underlying tab (make sure this is our own Tabbed)
         pageActivated( data ){
             if( data.tabbedName === self.PCK.dcName()){
                 self.PCK.activePane.set( data.tab.TABBED );
@@ -192,7 +196,7 @@ Template.Assistant.onCreated( function(){
                     }
                     //console.debug( 'nextIndex', nextIndex, 'accept', accept );
                     if( accept ){
-                        self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"]' ).trigger( 'tabbed-do-activate', { tabbedId: self.PCK.tabbedId.get(), index: nextIndex });
+                        self.PCK.tabbedDom.get().trigger( 'tabbed-do-activate', { tabbedId: self.PCK.tabbedId.get(), index: nextIndex });
                     }
                 }
             }
@@ -207,12 +211,12 @@ Template.Assistant.onCreated( function(){
                 const fwd_data = {
                     assistantName: self.PCK.dcName(),
                     tabbedId: data.tabbedId,
-                    paneId: data.tab.TABBED.paneid,
-                    paneName: data.tab.TABBED.name,
+                    paneId: data.tab.TABBED.tab.paneId(),
+                    paneName: data.tab.TABBED.tab.name(),
                     paneIndex: data.tab.TABBED.index
                 };
                 // advertize the assistant pane
-                const $fwd_target = self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"] #'+data.tab.TABBED.paneid+' > :first-child' );
+                const $fwd_target = self.$( '.Tabbed[data-tabbed-id="'+self.PCK.tabbedId.get()+'"] #'+data.tab.TABBED.tab.paneId()+' > :first-child' );
                 $fwd_target.trigger( fwd_event, fwd_data );
                 self.PCK.lastAssistantEventSent = fwd_event;
             }
@@ -220,7 +224,7 @@ Template.Assistant.onCreated( function(){
 
         // when a tab is shown, then set the focus on the first input field
         setFocusOnShown( event, data ){
-            const $target = self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"] #'+data.tab.TABBED.paneid+' > :first-child' );
+            const $target = self.$( '.Tabbed[data-tabbed-id="'+self.PCK.tabbedId.get()+'"] #'+data.tab.TABBED.tab.paneId()+' > :first-child' );
             $target.find( 'input' ).first().focus();
         }
     };
@@ -298,11 +302,11 @@ Template.Assistant.onRendered( function(){
             //  so we ask for the last page, set activation to true (because event handlers are sync), and then only activate the first page
             if( !self.PCK.firstActivated ){
                 const pages = self.PCK.dcPages();
-                self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"]' ).trigger( 'tabbed-do-activate', { tabbedId: self.PCK.tabbedId.get(), index: pages.length-1 });
+                self.PCK.tabbedDom.get().trigger( 'tabbed-do-activate', { tabbedId: self.PCK.tabbedId.get(), index: pages.length-1 });
                 //console.debug( 'activating' );
                 self.PCK.firstActivated = true;
-                self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"]' ).trigger( 'assistant-activated', { name: self.PCK.dcName(), pck: self.PCK });
-                self.$( '.tabbed-template[data-tabbed-id="'+self.PCK.tabbedId.get()+'"]' ).trigger( 'tabbed-do-activate', { tabbedId: self.PCK.tabbedId.get(), index: 0 });
+                self.PCK.tabbedDom.get().trigger( 'assistant-activated', { name: self.PCK.dcName(), pck: self.PCK });
+                self.PCK.tabbedDom.get().trigger( 'tabbed-do-activate', { tabbedId: self.PCK.tabbedId.get(), index: 0 });
                 // disable the pages at startup
                 for( let i=0 ; i<pages.length ; ++i ){
                     if( pages[i].enabled === false ){
@@ -349,8 +353,8 @@ Template.Assistant.helpers({
             name(){
                 return APP.dcName( dataContext ) || 'Assistant';
             },
-            navLinkClasses: 'ca-inactive',
-            navClasses: 'ca-assistant',
+            navLinkClasses: 'ui-inactive',
+            navClasses: 'ui-assistant',
             navPosition: 'left',
             //paneSubTemplate: subTemplate,
             tabs(){
@@ -360,7 +364,7 @@ Template.Assistant.helpers({
                         navLabel: page.label,
                         paneData: page.data || dataContext,
                         paneTemplate: page.template,
-                        tabName: page.name
+                        name: page.name
                     });
                     return true;
                 });
@@ -375,7 +379,9 @@ Template.Assistant.events({
     // identifies the coreTabbedTemplate when first rendered
     //  doesn't bubble up while the assistant is not activated
     'tabbed-rendered .Assistant'( event, instance, data ){
+        //console.debug( event.type, data );
         instance.PCK.tabbedId.set( data.tabbedId );
+        instance.PCK.tabbedDom.set( data.$tabbed );
         return instance.PCK.firstActivated;
     },
 
