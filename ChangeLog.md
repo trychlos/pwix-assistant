@@ -2,9 +2,9 @@
 
 ## ChangeLog
 
-### 1.1.0-rc
+### 1.1.0
 
-    Release date: 
+    Release date: 2024- 9-13
 
     - Improve README
     - Define new 'assistant-checker' event, thus bumping minor candidate version number
@@ -20,4 +20,4 @@
 
 ---
 P. Wieser
-- Last updated on 2024, Aug. 14th
+- Last updated on 2024, Sep. 13th
