@@ -1,6 +1,6 @@
 Package.describe({
     name: 'pwix:assistant',
-    version: '1.1.0',
+    version: '1.1.1-rc',
     summary: 'A Bootstrap modal-based assistant for Meteor',
     git: 'https://github.com/trychlos/pwix-assistant.git',
     documentation: 'README.md'
