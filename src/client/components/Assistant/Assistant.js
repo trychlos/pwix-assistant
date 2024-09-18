@@ -26,7 +26,7 @@ Template.Assistant.onCreated( function(){
         firstActivated: false,
         // whether the assistant runs inside of a modal
         insideModal: new ReactiveVar( false ),
-        // the tabbed component identifier and the DOM element
+        // the tabbed component identifier and the corresponding DOM element
         tabbedId: new ReactiveVar( null ),
         tabbedDom: new ReactiveVar( null ),
         // maintain the current page name
@@ -317,7 +317,7 @@ Template.Assistant.onRendered( function(){
         }
     });
 
-    // if a parent checker is provided, then allocate a checker and a messagefr here
+    // if a parent checker is provided, then allocate a checker and a messager here
     self.autorun(() => {
         const parentChecker = Template.currentData().checker;
         if( parentChecker && parentChecker instanceof ReactiveVar && parentChecker.get() instanceof Forms.Checker && !self.PCK.checker.get()){
