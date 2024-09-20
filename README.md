@@ -46,12 +46,12 @@ It accepts following data context:
 
 - `name`: mandatory, a name to be given to the assistant, defaulting to 'Assistant'
 
-- `pages`: an (ordered) array of page descriptions, or a function which returns such an array, where each item is a page definition with:
+- `assistantPages`: an (ordered) array of page descriptions, or a function which returns such an array, where each item is a page definition with:
 
     - `name`: a page unique name in the assistant (in order to share an identifier between the caller and the assistant)
     - `template`: the template name to be displayed
     - `label`: the label to be displayed on the left pages index
-    - `data`: the data context to be passed to each page, defaulting to the data context of this same assistant
+    - `data`: the data context to be passed to the page, defaulting to the data context of this same assistant
     - `start`: should be set to true on the first page
          when true, the 'prev' action is disabled
          default to false
@@ -60,14 +60,16 @@ It accepts following data context:
          default to false, where we have the Cancel-Prev-Next buttons
     - `enabled`: whether the page is enabled at startup, defaulting to true
 
-- `actions`: when set, an (ordered) array of action descriptions to be added on the bottom left of the assistant pages, with:
+- `assistantActions`: when set, an (ordered) array of action descriptions to be added on the bottom left of the assistant pages, with:
     - `html`: the html content to be displayed
 
-- `onChange`( currentIndex, nextIndex ): should return true to accept the change, false to staty on the same page, defaulting to true
+- `assistantOnChange`( currentIndex, nextIndex ): should return true to accept the change, false to staty on the same page, defaulting to true
 
-- `confirmOnClose`, whether we want a user confirmation when closing the assistant on Cancel action or header xmark click, defaulting to false
+- `assistantConfirmOnClose`, whether we want a user confirmation when closing the assistant on Cancel action or header xmark click, defaulting to false
 
-If a `checker` ReactiveVar is available in the provided data context, then the component will allocate a `Forms.Messager` on the bottom of the panes.
+- `assistantWithParentChecker`, whether we must wait for a parent `checker` to be available before instanciating our own `Forms.Checker`, defaulting to `true`
+
+If a `checker` ReactiveVar is available in the provided data context, then the component will allocate a `Forms.Messager` on the bottom of the panes, and insert its own `Forms.Checker` between the caller and the panes. It will use the `paneSubTemplate`/`paneSubData` feature of the underlying `pwix:tabbed`. As a consequence, the application cannot use this feature when running an assistant.
 
 `Assistant` component defaults to provide four actions `cancel`, `close`, `next` and `prev`. When the assistant is displayed in a modal, each of these actions can be materialized by a button in the bottom right of the display unit. Through events, each of the actions may be shown or hidden,  enabled or disabled, and their HTML attributes and content can be changed.
 
@@ -87,7 +89,6 @@ If a `checker` ReactiveVar is available in the provided data context, then the c
 ##### Triggered events
 
 - on itself (and bubble up to the parents)
-    - `assistant-checker` data={ checker } at instanciation time, checker being the ReactiveVar which holds the assistant checker
     - `assistant-activated` data={ name, pck } at initialization time, name being the assistant name
     - `assistant-action-cancel` on click
     - `assistant-action-close` on click

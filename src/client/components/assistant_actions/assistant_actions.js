@@ -169,7 +169,7 @@ Template.assistant_actions.events({
 
     // instructions sent by Assistant
     'assistant-do-action-set .assistant-actions'( event, instance, data ){
-        //instance.PCK.actions.set( data.action, data.enabled );
+        //console.debug( event.type, data );
         if( instance.PCK.buttonsList.get().includes( data.action )){
             Object.keys( data ).forEach(( it ) => {
                 if( it !== 'action' ){

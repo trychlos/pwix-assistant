@@ -21,6 +21,7 @@ import './Assistant.html';
 
 Template.Assistant.onCreated( function(){
     const self = this;
+
     self.PCK = {
         // keept the track of the first activation
         firstActivated: false,
@@ -102,7 +103,7 @@ Template.Assistant.onCreated( function(){
 
         // returns the pages array from the data context
         dcPages(){
-            const pages = Template.currentData().pages;
+            const pages = Template.currentData().assistantPages;
             return pages ? ( _.isFunction( pages ) ? pages() : ( _.isArray( pages ) ? pages : [] )) : [];
         },
 
@@ -189,7 +190,7 @@ Template.Assistant.onCreated( function(){
                 //console.debug( 'page', page );
                 if( page ){
                     const nextIndex = self.PCK.nextIndex( page, tick );
-                    const onChange = Template.currentData().onChange;
+                    const onChange = Template.currentData().assistantOnChange;
                     let accept = true;
                     if( onChange && _.isFunction( onChange )){
                         accept = onChange( page.index, nextIndex );
@@ -231,7 +232,7 @@ Template.Assistant.onCreated( function(){
 
     // keep the value of confirmOnClose parameter
     self.autorun(() => {
-        const confirm = Template.currentData().confirmOnClose;
+        const confirm = Template.currentData().assistantConfirmOnClose;
         const classes = Template.currentData().mdClassesContent || '';
         self.PCK.beforeCloseParms.set( 'confirmOnClose', _.isBoolean( confirm ) ? confirm : false );
         self.PCK.beforeCloseParms.set( 'mdClassesContent', classes );
@@ -319,57 +320,68 @@ Template.Assistant.onRendered( function(){
 
     // if a parent checker is provided, then allocate a checker and a messager here
     self.autorun(() => {
-        const parentChecker = Template.currentData().checker;
-        if( parentChecker && parentChecker instanceof ReactiveVar && parentChecker.get() instanceof Forms.Checker && !self.PCK.checker.get()){
+        const waitForParent = Template.currentData().assistantWithParentChecker !== false;
+        const parentChecker = Template.currentData().checker || null;
+        if(( !waitForParent || ( parentChecker && parentChecker instanceof ReactiveVar && parentChecker.get() instanceof Forms.Checker )) && !self.PCK.checker.get()){
             self.PCK.messager = new Forms.Messager();
             self.PCK.checker.set( new Forms.Checker( self, {
                 name: 'assistant',
-                parent: parentChecker.get(),
+                parent: parentChecker?.get(),
                 messager: self.PCK.messager
             }));
-            self.$( '.Assistant' ).trigger( 'assistant-checker', { checker: self.PCK.checker });
         }
     });
 });
 
 Template.Assistant.helpers({
-    // parms to be provided for tabbed template
+    // parms to be provided for Tabbed component
     // insert the checker if we have one
     parmsTabbed(){
-        let dataContext = this;
+        // reproduce the current data context, filtering assistant* (pwix:assistant) and md* (pwix:modal) key which are supposed useless for the panes
+        let dataContext = {};
+        Object.keys( this ).map(( it ) => { if( !it.match( /^md/ ) && !it.match( /^assistant/ )) dataContext[it] = this[it]; });
+        delete dataContext.checker;
+        let adds = {};
         const APP = Template.instance().PCK;
         if( APP.checker.get() && APP.messager ){
-            dataContext = _.merge( dataContext, {
+            adds = {
                 checker: APP.checker,
                 paneSubTemplate: 'FormsMessager',
                 paneSubData: {
                     messager: APP.messager
                 }
-            });
+            };
         }
         //console.debug( 'dcPages', APP.dcPages());
+        let tabs = [];
+        APP.dcPages().forEach(( page ) => {
+            let tab = { ...page };
+            delete tab.label;
+            delete tab.template;
+            delete tab.data;
+            _.merge( tab, {
+                navLabel: page.label,
+                paneTemplate: page.template
+            });
+            if( page.data ){
+                tab.paneData = page.data;
+                if( APP.checker.get() && APP.messager ){
+                    tab.paneData.checker = APP.checker;
+                }
+            }
+            tabs.push( tab );
+        });
         return {
             ...dataContext,
+            ...adds,
             name(){
                 return APP.dcName( dataContext ) || 'Assistant';
             },
             navLinkClasses: 'ui-inactive',
             navClasses: 'ui-assistant',
             navPosition: 'left',
-            //paneSubTemplate: subTemplate,
-            tabs(){
-                let tabs = [];
-                APP.dcPages().every(( page ) => {
-                    tabs.push({
-                        navLabel: page.label,
-                        paneData: page.data || dataContext,
-                        paneTemplate: page.template,
-                        name: page.name
-                    });
-                    return true;
-                });
-                return tabs;
-            }
+            tabs: tabs,
+            activateLastTab: false
         };
     }
 });

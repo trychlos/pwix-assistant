@@ -6,7 +6,8 @@
 
     Release date: 
 
-    - 
+    - Fix Forms.Checker instanciation
+    - Fix Tabbed.activateLastTab parameter
 
 ### 1.1.0
 
