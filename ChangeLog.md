@@ -2,9 +2,9 @@
 
 ## ChangeLog
 
-### 1.1.1-rc
+### 1.1.1
 
-    Release date: 
+    Release date: 2024- 9-20
 
     - Fix Forms.Checker instanciation
     - Fix Tabbed.activateLastTab parameter
@@ -27,4 +27,4 @@
 
 ---
 P. Wieser
-- Last updated on 2024, Sep. 13th
+- Last updated on 2024, Sep. 20th
