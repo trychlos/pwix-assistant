@@ -6,7 +6,7 @@
 
     Release date: 
 
-    - 
+    - Fix configuration overrides
 
 ### 1.1.1
 

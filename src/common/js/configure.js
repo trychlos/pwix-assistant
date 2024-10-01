@@ -21,7 +21,7 @@ Assistant._defaults = {
  */
 Assistant.configure = function( o ){
     if( o && _.isObject( o )){
-        _.merge( _conf, Assistant._defaults, o );
+        _conf = _.merge( Assistant._defaults, _conf, o );
         Assistant._conf.set( _conf );
         // be verbose if asked for
         if( _conf.verbosity & Assistant.C.Verbose.CONFIGURE ){
@@ -33,5 +33,5 @@ Assistant.configure = function( o ){
     return Assistant._conf.get();
 }
 
-_.merge( _conf, Assistant._defaults );
+_conf = _.merge( {}, Assistant._defaults );
 Assistant._conf.set( _conf );
