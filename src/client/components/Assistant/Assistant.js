@@ -114,11 +114,11 @@ Template.Assistant.onCreated( function(){
             } else {
                 const Tabbed = self.PCK.tabbedDom.get();
                 if( Tabbed ){
-                    self.PCK.enabledPanes.set( name, enabled );
+                    self.PCK.enabledPanes.set( name, Boolean( enabled ));
                     Tabbed.trigger( 'tabbed-do-enable', {
                         tabbedId: self.PCK.tabbedId.get(),
                         index: self.PCK.indexByName( name ),
-                        enabled: enabled
+                        enabled: Boolean( enabled )
                     });
                 }
             }

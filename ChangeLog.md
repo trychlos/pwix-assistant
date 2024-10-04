@@ -6,7 +6,7 @@
 
     Release date: 
 
-    - 
+    - Make sure Boolean is used when enabling/disabling a pane
 
 ### 1.1.2
 
