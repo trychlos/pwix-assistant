@@ -216,7 +216,7 @@ Template.Assistant.onCreated( function(){
                     paneName: data.tab.TABBED.tab.name(),
                     paneIndex: data.tab.TABBED.index
                 };
-                // advertize the assistant pane
+                // advertise the assistant pane
                 const $fwd_target = self.$( '.Tabbed[data-tabbed-id="'+self.PCK.tabbedId.get()+'"] #'+data.tab.TABBED.tab.paneId()+' > :first-child' );
                 $fwd_target.trigger( fwd_event, fwd_data );
                 self.PCK.lastAssistantEventSent = fwd_event;
@@ -290,7 +290,7 @@ Template.Assistant.onRendered( function(){
 
     // and identify ourselves againts this companion component
     //  and run first activation
-    //  only advertize of the assistant activation when initialization is done (and checker instanciated)
+    //  only advertise of the assistant activation when initialization is done (and checker instanciated)
     self.autorun(() => {
         const $actions = self.PCK.$actions.get();
         const checker = self.PCK.checker.get();

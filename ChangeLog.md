@@ -7,6 +7,7 @@
     Release date: 
 
     - Make sure Boolean is used when enabling/disabling a pane
+    - Minor spelling fixes
 
 ### 1.1.2
 
