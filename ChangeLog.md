@@ -2,9 +2,9 @@
 
 ## ChangeLog
 
-### 1.1.3-rc
+### 1.1.3
 
-    Release date: 
+    Release date: 2024-11-19
 
     - Make sure Boolean is used when enabling/disabling a pane
     - Minor spelling fixes
@@ -40,4 +40,4 @@
 
 ---
 P. Wieser
-- Last updated on 2024, Oct. 4th
+- Last updated on 2024, Nov. 19th
